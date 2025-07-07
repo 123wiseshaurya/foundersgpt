@@ -132,7 +132,7 @@ export const EmailGenerator: React.FC = () => {
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating || !apiKey}
+          disabled={!idea.trim() || isGenerating}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
