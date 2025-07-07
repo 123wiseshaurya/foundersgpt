@@ -3,25 +3,15 @@ import { Target, Sparkles, Star, ArrowRight } from 'lucide-react';
 import { generateStructuredResponse } from '../../lib/openai';
 import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
 import { ErrorMessage } from '../ui/ErrorMessage';
-import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const MvpGenerator: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(
-    localStorage.getItem('openai_api_key')
-  );
-
-  const handleApiKeySet = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem('openai_api_key', key);
-    (window as any).VITE_OPENAI_API_KEY = key;
-  };
 
   const handleGenerate = async () => {
-    if (!idea.trim() || !apiKey) return;
+    if (!idea.trim()) return;
     
     setIsGenerating(true);
     setError(null);
@@ -57,11 +47,6 @@ export const MvpGenerator: React.FC = () => {
       setIsGenerating(false);
     }
   };
-
-  if (!apiKey) {
-    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
-  }
-    
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

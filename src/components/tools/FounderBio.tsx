@@ -3,7 +3,6 @@ import { User, Sparkles, Copy, Check } from 'lucide-react';
 import { generateStructuredResponse } from '../../lib/openai';
 import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
 import { ErrorMessage } from '../ui/ErrorMessage';
-import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const FounderBio: React.FC = () => {
   const [role, setRole] = useState('');
@@ -14,18 +13,9 @@ export const FounderBio: React.FC = () => {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(
-    localStorage.getItem('openai_api_key')
-  );
-
-  const handleApiKeySet = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem('openai_api_key', key);
-    (window as any).VITE_OPENAI_API_KEY = key;
-  };
 
   const handleGenerate = async () => {
-    if (!role.trim() || !apiKey) return;
+    if (!role.trim()) return;
     
     setIsGenerating(true);
     setError(null);
@@ -70,10 +60,6 @@ export const FounderBio: React.FC = () => {
     setCopied(type);
     setTimeout(() => setCopied(null), 2000);
   };
-
-  if (!apiKey) {
-    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
-  }
 
   const bioTypes = [
     { key: 'short', title: 'Short Bio (1-2 sentences)', description: 'Perfect for team pages, quick introductions' },

@@ -3,32 +3,15 @@ import { Brain, Sparkles, Users, Target, TrendingUp } from 'lucide-react';
 import { generateStructuredResponse } from '../../lib/openai';
 import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
 import { ErrorMessage } from '../ui/ErrorMessage';
-import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const IdeaAnalyzer: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      // Set the API key in environment
-      (window as any).VITE_OPENAI_API_KEY = savedApiKey;
-    }
-  }, []);
-
-  const handleApiKeySet = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem('openai_api_key', key);
-    (window as any).VITE_OPENAI_API_KEY = key;
-  };
 
   const handleAnalyze = async () => {
-    if (!idea.trim() || !apiKey) return;
+    if (!idea.trim()) return;
     
     setIsGenerating(true);
     setError(null);
@@ -63,10 +46,6 @@ export const IdeaAnalyzer: React.FC = () => {
       setIsGenerating(false);
     }
   };
-
-  if (!apiKey) {
-    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
-  }
 
   return (
     <div className="max-w-4xl mx-auto">

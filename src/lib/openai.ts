@@ -2,9 +2,9 @@ import OpenAI from 'openai';
 
 // Initialize OpenAI client
 function getOpenAIClient() {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY || (window as any).VITE_OPENAI_API_KEY;
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error('OpenAI API key not found');
+    throw new Error('OpenAI API key not found. Please set VITE_OPENAI_API_KEY in your environment variables.');
   }
   return new OpenAI({
     apiKey,

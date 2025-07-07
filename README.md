@@ -121,6 +121,7 @@ Experience all features without registration:
 ### Prerequisites
 - **Node.js** (version 18 or higher)
 - **npm** or **yarn** package manager
+- **OpenAI API Key** (get one at [platform.openai.com](https://platform.openai.com/api-keys))
 
 ### Installation
 
@@ -135,12 +136,21 @@ Experience all features without registration:
    npm install
    ```
 
-3. **Start development server**
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` and add your OpenAI API key:
+   ```
+   VITE_OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
+4. **Start development server**
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    ```
    http://localhost:5173
    ```

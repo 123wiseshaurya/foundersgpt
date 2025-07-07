@@ -3,25 +3,15 @@ import { TrendingUp, Sparkles, Search, Users, DollarSign, Shield } from 'lucide-
 import { generateStructuredResponse } from '../../lib/openai';
 import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
 import { ErrorMessage } from '../ui/ErrorMessage';
-import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const CompetitorAnalysis: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(
-    localStorage.getItem('openai_api_key')
-  );
-
-  const handleApiKeySet = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem('openai_api_key', key);
-    (window as any).VITE_OPENAI_API_KEY = key;
-  };
 
   const handleAnalyze = async () => {
-    if (!idea.trim() || !apiKey) return;
+    if (!idea.trim()) return;
     
     setIsAnalyzing(true);
     setError(null);
@@ -64,10 +54,6 @@ export const CompetitorAnalysis: React.FC = () => {
       default: return 'bg-purple-500/20 text-purple-300';
     }
   };
-
-  if (!apiKey) {
-    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
-  }
 
   return (
     <div className="max-w-6xl mx-auto">
