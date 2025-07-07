@@ -6,7 +6,7 @@
   <h3>🚀 Transform Your Startup Vision Into Reality</h3>
   <p>The AI-powered platform that turns innovative ideas into strategic business assets, helping founders validate, develop, and scale their ventures with confidence.</p>
   
-  [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://your-deployed-url.netlify.app)
+  [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://foungersgpt.netlify.app)
   [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4.1-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
@@ -85,7 +85,7 @@
 
 ## 🌐 Live Demo
 
-**🔗 [Try FounderGPT Live](https://your-deployed-url.netlify.app)**
+**🔗 [Try FounderGPT Live](https://foungersgpt.netlify.app)**
 
 Experience all features without registration:
 1. Visit the live demo link
@@ -267,7 +267,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ### **Get Help**
 - 📧 **Email**: support@foundergpt.com
 - 💬 **Discord**: [Join our community](https://discord.gg/foundergpt)
-- 🐦 **Twitter**: [@FounderGPT](https://twitter.com/foundergpt)
+- 🌐 **Live Demo**: [https://foungersgpt.netlify.app](https://foungersgpt.netlify.app)
 
 ### **Business Inquiries**
 - 💼 **Partnerships**: partnerships@foundergpt.com
