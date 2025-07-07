@@ -1,0 +1,305 @@
+import React, { useState } from 'react';
+import { TrendingUp, Sparkles, Search, Users, DollarSign, Shield } from 'lucide-react';
+
+export const CompetitorAnalysis: React.FC = () => {
+  const [idea, setIdea] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const handleAnalyze = async () => {
+    if (!idea.trim()) return;
+    
+    setIsAnalyzing(true);
+    
+    // Simulate AI processing
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    setResult({
+      competitors: [
+        {
+          name: "StartupLab",
+          url: "startuplab.com",
+          category: "Direct Competitor",
+          description: "AI-powered startup validation and planning platform",
+          strengths: ["Strong AI capabilities", "Large user base", "Comprehensive features"],
+          weaknesses: ["Expensive pricing", "Complex interface", "Limited customer support"],
+          pricing: "$99/month",
+          users: "50K+ users",
+          funding: "$10M Series A",
+          differentiators: ["More affordable", "Better UX", "Personalized approach"]
+        },
+        {
+          name: "IdeaValidator",
+          url: "ideavaliator.io",
+          category: "Indirect Competitor",
+          description: "Market research and validation tools for entrepreneurs",
+          strengths: ["Detailed market research", "Industry reports", "Expert network"],
+          weaknesses: ["Manual processes", "Slow turnaround", "Limited AI integration"],
+          pricing: "$49/month",
+          users: "15K+ users",
+          funding: "$2M Seed",
+          differentiators: ["Automated analysis", "Real-time insights", "All-in-one platform"]
+        },
+        {
+          name: "FounderTools",
+          url: "foundertools.com",
+          category: "Adjacent Competitor",
+          description: "Suite of tools for startup founders and entrepreneurs",
+          strengths: ["Wide range of tools", "Established brand", "Good integrations"],
+          weaknesses: ["Not AI-focused", "Fragmented experience", "Higher learning curve"],
+          pricing: "$79/month",
+          users: "25K+ users",
+          funding: "$5M Series A",
+          differentiators: ["AI-first approach", "Integrated experience", "Specialized focus"]
+        }
+      ],
+      marketAnalysis: {
+        marketSize: "$3.8B",
+        growthRate: "15.2% CAGR",
+        keyTrends: [
+          "Increasing adoption of AI in business planning",
+          "Growing number of first-time entrepreneurs",
+          "Shift towards remote entrepreneurship",
+          "Demand for automated validation tools"
+        ],
+        opportunities: [
+          "Underserved small business market",
+          "International expansion potential",
+          "Integration with funding platforms",
+          "Mobile-first approach"
+        ]
+      },
+      competitiveAdvantages: [
+        "Advanced AI algorithms for more accurate predictions",
+        "User-friendly interface designed for non-technical founders",
+        "Comprehensive end-to-end solution",
+        "Affordable pricing for early-stage entrepreneurs",
+        "Real-time collaboration features",
+        "Integrated funding and mentorship network"
+      ],
+      threats: [
+        "Well-funded competitors with large marketing budgets",
+        "Potential for big tech companies to enter the space",
+        "Economic downturn affecting startup funding",
+        "Regulatory changes in AI/data privacy"
+      ],
+      recommendations: [
+        "Focus on unique AI capabilities and user experience",
+        "Build strong partnerships with accelerators and incubators",
+        "Develop a content marketing strategy to establish thought leadership",
+        "Consider freemium model to attract early adopters",
+        "Invest in customer success and support"
+      ]
+    });
+    
+    setIsAnalyzing(false);
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'Direct Competitor': return 'bg-red-500/20 text-red-300';
+      case 'Indirect Competitor': return 'bg-yellow-500/20 text-yellow-300';
+      case 'Adjacent Competitor': return 'bg-blue-500/20 text-blue-300';
+      default: return 'bg-purple-500/20 text-purple-300';
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-purple-500/20 mb-8">
+        <div className="flex items-center space-x-3 mb-6">
+          <TrendingUp className="h-8 w-8 text-purple-400" />
+          <div>
+            <h2 className="text-2xl font-bold text-white">Competitor Analysis</h2>
+            <p className="text-purple-200">Analyze your competitive landscape and find your edge</p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <label htmlFor="idea" className="block text-sm font-medium text-purple-200 mb-2">
+            Describe your startup idea
+          </label>
+          <textarea
+            id="idea"
+            value={idea}
+            onChange={(e) => setIdea(e.target.value)}
+            placeholder="e.g., A platform that connects freelance developers with startups for equity-based partnerships..."
+            className="w-full h-32 px-4 py-3 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            rows={4}
+          />
+        </div>
+
+        <button
+          onClick={handleAnalyze}
+          disabled={!idea.trim() || isAnalyzing}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
+        >
+          {isAnalyzing ? (
+            <>
+              <Sparkles className="h-5 w-5 animate-spin" />
+              <span>Analyzing Competitors...</span>
+            </>
+          ) : (
+            <>
+              <Search className="h-5 w-5" />
+              <span>Analyze Competition</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {result && (
+        <div className="space-y-8">
+          {/* Competitor Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {result.competitors.map((competitor: any, index: number) => (
+              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-1">{competitor.name}</h3>
+                    <p className="text-purple-300 text-sm mb-2">{competitor.url}</p>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(competitor.category)}`}>
+                      {competitor.category}
+                    </span>
+                  </div>
+                </div>
+                
+                <p className="text-purple-100 text-sm mb-4">{competitor.description}</p>
+                
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-green-400" />
+                    <span className="text-sm text-purple-200">{competitor.pricing}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm text-purple-200">{competitor.users}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="h-4 w-4 text-purple-400" />
+                    <span className="text-sm text-purple-200">{competitor.funding}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-green-300 mb-2">Strengths</h4>
+                    <ul className="text-xs text-purple-100 space-y-1">
+                      {competitor.strengths.map((strength: string, i: number) => (
+                        <li key={i} className="flex items-start space-x-1">
+                          <span className="text-green-400 mt-0.5">+</span>
+                          <span>{strength}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-red-300 mb-2">Weaknesses</h4>
+                    <ul className="text-xs text-purple-100 space-y-1">
+                      {competitor.weaknesses.map((weakness: string, i: number) => (
+                        <li key={i} className="flex items-start space-x-1">
+                          <span className="text-red-400 mt-0.5">-</span>
+                          <span>{weakness}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-blue-300 mb-2">How We're Different</h4>
+                    <ul className="text-xs text-purple-100 space-y-1">
+                      {competitor.differentiators.map((diff: string, i: number) => (
+                        <li key={i} className="flex items-start space-x-1">
+                          <span className="text-blue-400 mt-0.5">→</span>
+                          <span>{diff}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Market Analysis */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+            <h3 className="text-xl font-semibold text-white mb-6">Market Analysis</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-purple-200 mb-3">Market Overview</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-purple-300">Market Size:</span>
+                    <span className="text-white font-medium">{result.marketAnalysis.marketSize}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-purple-300">Growth Rate:</span>
+                    <span className="text-white font-medium">{result.marketAnalysis.growthRate}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-purple-200 mb-3">Key Trends</h4>
+                <ul className="space-y-1 text-sm">
+                  {result.marketAnalysis.keyTrends.map((trend: string, index: number) => (
+                    <li key={index} className="text-purple-100 flex items-start space-x-2">
+                      <span className="text-blue-400 mt-1">•</span>
+                      <span>{trend}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Competitive Advantages */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+            <div className="flex items-center space-x-2 mb-4">
+              <Shield className="h-6 w-6 text-green-400" />
+              <h3 className="text-xl font-semibold text-white">Your Competitive Advantages</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {result.competitiveAdvantages.map((advantage: string, index: number) => (
+                <div key={index} className="bg-green-500/10 rounded-lg p-4 border border-green-500/20">
+                  <div className="text-green-100 flex items-start space-x-2">
+                    <span className="text-green-400 mt-1">✓</span>
+                    <span>{advantage}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Threats & Recommendations */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+              <h3 className="text-xl font-semibold text-red-300 mb-4">Potential Threats</h3>
+              <ul className="space-y-2">
+                {result.threats.map((threat: string, index: number) => (
+                  <li key={index} className="text-purple-100 flex items-start space-x-2">
+                    <span className="text-red-400 mt-1">⚠</span>
+                    <span>{threat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+              <h3 className="text-xl font-semibold text-blue-300 mb-4">Strategic Recommendations</h3>
+              <ul className="space-y-2">
+                {result.recommendations.map((rec: string, index: number) => (
+                  <li key={index} className="text-purple-100 flex items-start space-x-2">
+                    <span className="text-blue-400 mt-1">💡</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
