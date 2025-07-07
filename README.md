@@ -55,19 +55,6 @@
 ### 🧠 Idea Analyzer
 ![image](https://github.com/user-attachments/assets/c5ada33d-2b78-4952-bcb8-34e028959146)
 
-
-### 🎯 MVP Generator
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&fit=crop" alt="MVP Generator" width="80%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-  <p><em>Prioritized feature roadmaps with development timelines and cost estimates</em></p>
-</div>
-
-### 📊 Lean Canvas Generator
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184317/pexels-photo-3184317.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&fit=crop" alt="Lean Canvas Tool" width="80%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-  <p><em>Visual business model canvas with export to PDF and PNG formats</em></p>
-</div>
-
 ### 📧 Email Generator
 ![image](https://github.com/user-attachments/assets/cc3597a9-5d60-43b7-807c-9526c88ec75f)
 
@@ -254,18 +241,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - **React Team** - Incredible frontend framework
 - **Netlify** - Seamless deployment platform
 
-## 📞 Contact & Support
-
-### **Get Help**
-- 📧 **Email**: support@foundergpt.com
-- 💬 **Discord**: [Join our community](https://discord.gg/foundergpt)
-- 🌐 **Live Demo**: [https://foungersgpt.netlify.app](https://foungersgpt.netlify.app)
-
-### **Business Inquiries**
-- 💼 **Partnerships**: partnerships@foundergpt.com
-- 🚀 **Enterprise**: enterprise@foundergpt.com
-
----
 
 <div align="center">
   <h3>🌟 Star this repo if you found it helpful!</h3>
