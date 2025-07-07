@@ -1,42 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Brain, Sparkles, Users, Target, TrendingUp } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const IdeaAnalyzer: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+      // Set the API key in environment
+      (window as any).VITE_OPENAI_API_KEY = savedApiKey;
+    }
+  }, []);
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleAnalyze = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      elevatorPitch: `${idea} is a revolutionary platform that addresses the critical need for streamlined solutions in the modern market. By leveraging cutting-edge technology and user-centric design, we're positioned to capture significant market share and drive meaningful impact for our target audience.`,
-      targetAudience: {
-        primary: "Tech-savvy professionals aged 25-40 who value efficiency and innovation",
-        secondary: "Small to medium business owners looking to optimize their operations",
-        tertiary: "Early adopters and technology enthusiasts"
-      },
-      problemStatement: `Current solutions in the market are fragmented, expensive, and don't address the core pain points that ${idea} solves. Users struggle with inefficient workflows, high costs, and lack of integration between tools.`,
-      marketOpportunity: "The addressable market is estimated at $2.5B and growing at 15% annually, with significant untapped potential in emerging segments.",
-      riskFactors: [
-        "Competitive landscape with established players",
-        "Potential technical challenges in scaling",
-        "Customer acquisition costs may be higher than projected"
-      ],
-      successFactors: [
-        "Strong product-market fit validation",
-        "Experienced team with domain expertise",
-        "Clear differentiation from existing solutions"
-      ]
-    });
-    
-    setIsGenerating(false);
+    try {
+      const prompt = `Analyze this startup idea comprehensively: "${idea}"
+      
+      Provide a detailed analysis including:
+      - A compelling elevator pitch
+      - Target audience segments (primary, secondary, tertiary)
+      - Clear problem statement
+      - Market opportunity assessment
+      - Key risk factors to consider
+      - Critical success factors
+      
+      Be specific, realistic, and actionable in your analysis.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.ideaAnalyzer,
+        JSON_SCHEMAS.ideaAnalysis
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to analyze idea. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -71,7 +101,7 @@ export const IdeaAnalyzer: React.FC = () => {
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Analyzing...</span>
+              <span>Analyzing with AI...</span>
             </>
           ) : (
             <>
@@ -81,6 +111,12 @@ export const IdeaAnalyzer: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleAnalyze} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">

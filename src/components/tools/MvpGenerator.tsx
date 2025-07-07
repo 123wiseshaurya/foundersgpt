@@ -1,85 +1,67 @@
 import React, { useState } from 'react';
 import { Target, Sparkles, Star, ArrowRight } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const MvpGenerator: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      coreFeatures: [
-        {
-          name: "User Authentication & Profiles",
-          priority: "High",
-          effort: "Medium",
-          description: "Secure user registration, login, and profile management system",
-          timeEstimate: "2-3 weeks"
-        },
-        {
-          name: "Core Platform Functionality",
-          priority: "High",
-          effort: "High", 
-          description: "Main feature that delivers your primary value proposition",
-          timeEstimate: "4-6 weeks"
-        },
-        {
-          name: "Search & Discovery",
-          priority: "High",
-          effort: "Medium",
-          description: "Allow users to find and discover relevant content or services",
-          timeEstimate: "2-3 weeks"
-        },
-        {
-          name: "Basic Dashboard",
-          priority: "Medium",
-          effort: "Medium",
-          description: "Simple overview of user activity and key metrics",
-          timeEstimate: "1-2 weeks"
-        },
-        {
-          name: "Payment Integration",
-          priority: "Medium",
-          effort: "Medium",
-          description: "Basic payment processing for core transactions",
-          timeEstimate: "2-3 weeks"
-        },
-        {
-          name: "Notification System",
-          priority: "Low",
-          effort: "Low",
-          description: "Email and in-app notifications for key events",
-          timeEstimate: "1-2 weeks"
-        },
-        {
-          name: "Basic Analytics",
-          priority: "Low",
-          effort: "Low",
-          description: "Track user behavior and platform performance",
-          timeEstimate: "1 week"
-        }
-      ],
-      developmentTimeline: "12-16 weeks",
-      estimatedCost: "$15,000 - $25,000",
-      techStack: ["React/Next.js", "Node.js", "PostgreSQL", "Stripe", "AWS/Vercel"],
-      postMvpFeatures: [
-        "Advanced analytics and reporting",
-        "Mobile app development",
-        "API for third-party integrations",
-        "Advanced user permissions",
-        "Machine learning recommendations"
-      ]
-    });
-    
-    setIsGenerating(false);
+    try {
+      const prompt = `Create a comprehensive MVP plan for this startup idea: "${idea}"
+      
+      Provide:
+      - Core features prioritized by importance (High/Medium/Low priority)
+      - Development effort estimates (High/Medium/Low effort)
+      - Time estimates for each feature
+      - Overall development timeline
+      - Estimated development cost range
+      - Recommended tech stack
+      - Post-MVP features for future releases
+      
+      Focus on what's essential for initial market validation and user feedback.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.mvpGenerator,
+        JSON_SCHEMAS.mvpFeatures
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate MVP plan. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
+    
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -117,13 +99,13 @@ export const MvpGenerator: React.FC = () => {
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating}
+          disabled={!idea.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating MVP...</span>
+              <span>Generating MVP with AI...</span>
             </>
           ) : (
             <>
@@ -133,6 +115,12 @@ export const MvpGenerator: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">
