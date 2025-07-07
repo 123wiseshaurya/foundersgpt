@@ -2,8 +2,8 @@
 
 **🚀 Live Demo: [https://foungersgpt.netlify.app](https://foungersgpt.netlify.app)**
 
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop" alt="FounderGPT Banner" width="100%" height="200" style="object-fit: cover; border-radius: 10px;">
+![image](https://github.com/user-attachments/assets/3c0d4289-8328-49a7-9d40-a3028328620c)
+
   
   <h3>🚀 Transform Your Startup Vision Into Reality</h3>
   <p>The AI-powered platform that turns innovative ideas into strategic business assets, helping founders validate, develop, and scale their ventures with confidence.</p>
@@ -50,16 +50,11 @@
 ## 📸 Screenshots
 
 ### 🏠 Homepage
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&fit=crop" alt="FounderGPT Homepage" width="80%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-  <p><em>Clean, modern interface with easy navigation to all AI-powered tools</em></p>
-</div>
+![image](https://github.com/user-attachments/assets/394b3691-2d3f-4b05-87c2-02594e3fdea1)
 
 ### 🧠 Idea Analyzer
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&fit=crop" alt="Idea Analyzer Tool" width="80%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-  <p><em>AI-powered startup idea validation with comprehensive market analysis</em></p>
-</div>
+![image](https://github.com/user-attachments/assets/c5ada33d-2b78-4952-bcb8-34e028959146)
+
 
 ### 🎯 MVP Generator
 <div align="center">
@@ -74,16 +69,11 @@
 </div>
 
 ### 📧 Email Generator
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&fit=crop" alt="Email Generator" width="80%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-  <p><em>Professional cold email templates for investor outreach and partnerships</em></p>
-</div>
+![image](https://github.com/user-attachments/assets/cc3597a9-5d60-43b7-807c-9526c88ec75f)
 
 ### 📈 Competitor Analysis
-<div align="center">
-  <img src="https://images.pexels.com/photos/3184432/pexels-photo-3184432.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&fit=crop" alt="Competitor Analysis" width="80%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-  <p><em>Comprehensive market research with competitive positioning insights</em></p>
-</div>
+![image](https://github.com/user-attachments/assets/54664126-17e3-4783-b1af-f5877e6066d4)
+
 
 ## 🌐 Live Demo
 
