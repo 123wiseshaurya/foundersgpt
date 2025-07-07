@@ -1,5 +1,7 @@
 # FounderGPT - AI-Powered Startup Strategy Assistant
 
+**🚀 Live Demo: [https://foungersgpt.netlify.app](https://foungersgpt.netlify.app)**
+
 <div align="center">
   <img src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop" alt="FounderGPT Banner" width="100%" height="200" style="object-fit: cover; border-radius: 10px;">
   
