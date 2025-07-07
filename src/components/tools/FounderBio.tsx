@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { User, Sparkles, Copy, Check } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const FounderBio: React.FC = () => {
   const [role, setRole] = useState('');
@@ -8,36 +12,57 @@ export const FounderBio: React.FC = () => {
   const [tone, setTone] = useState('professional');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!role.trim()) return;
+    if (!role.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      short: `${role} with ${experience || 'extensive experience'} in building and scaling technology products. ${achievements || 'Track record of successful launches and team leadership.'} Passionate about leveraging AI to solve complex business problems.`,
-      medium: `${role} with ${experience || 'over 8 years of experience'} in product development, team leadership, and startup growth. ${achievements || 'Previously led product teams at Fortune 500 companies and has successfully launched multiple products from concept to market.'} Known for strategic thinking and hands-on execution. Currently focused on democratizing access to AI-powered business tools for entrepreneurs. Graduated from Stanford with a degree in Computer Science.`,
-      long: `${role} and serial entrepreneur with ${experience || 'over a decade of experience'} in building and scaling technology companies. ${achievements || 'Successfully founded and exited two previous startups, with combined valuation of $50M. Previously served as VP of Product at a leading SaaS company where they grew the user base from 10K to 1M+ users.'} 
+    try {
+      const prompt = `Create professional founder bios for: "${role}"
+      
+      Experience: ${experience || 'Not specified'}
+      Achievements: ${achievements || 'Not specified'}
+      Tone: ${tone}
+      
+      Generate 6 different bio formats:
+      - Short bio (1-2 sentences)
+      - Medium bio (1 paragraph)
+      - Long bio (3-4 paragraphs)
+      - LinkedIn headline
+      - Twitter bio
+      - Speaker bio
+      
+      Make them compelling and professional.`;
 
-Recognized thought leader in AI and entrepreneurship, regularly speaking at industry conferences and contributing to top-tier publications. Holds an MBA from Wharton and a BS in Computer Science from MIT.
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.founderBio,
+        JSON_SCHEMAS.founderBios
+      );
 
-Core expertise includes product strategy, AI/ML implementation, team building, and fundraising. Passionate about empowering the next generation of entrepreneurs with cutting-edge tools and insights.
-
-When not building products, enjoys mentoring early-stage founders, contributing to open-source projects, and exploring emerging technologies. Based in San Francisco, CA.`,
-      linkedIn: `${role} | Building AI-powered tools for entrepreneurs | Former ${experience || 'Tech Executive'} | ${achievements || 'Startup Founder & Advisor'}`,
-      twitter: `${role} building @FounderGPT 🚀 Helping entrepreneurs turn ideas into reality with AI ⚡ ${experience || 'Ex-startup founder'} | ${achievements || 'Advisor to 20+ startups'} | Tweets about #AI #startups #entrepreneurship`,
-      speakerBio: `${role} is a seasoned entrepreneur and technology executive with ${experience || 'over 10 years of experience'} building and scaling innovative products. ${achievements || 'As the founder of multiple successful startups, they have firsthand experience with the challenges and opportunities in the entrepreneurship ecosystem.'} 
-
-Currently leading FounderGPT, an AI-powered platform that helps entrepreneurs validate and develop their startup ideas. A frequent speaker on topics including artificial intelligence, product development, and entrepreneurship strategy.
-
-${experience || 'Previous experience includes leadership roles at both startups and Fortune 500 companies, giving them unique insights into innovation at scale.'} Regular contributor to industry publications and active mentor in the startup community.`
-    });
-    
-    setIsGenerating(false);
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate bios. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = (text: string, type: string) => {
@@ -45,6 +70,10 @@ ${experience || 'Previous experience includes leadership roles at both startups 
     setCopied(type);
     setTimeout(() => setCopied(null), 2000);
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   const bioTypes = [
     { key: 'short', title: 'Short Bio (1-2 sentences)', description: 'Perfect for team pages, quick introductions' },
@@ -128,13 +157,13 @@ ${experience || 'Previous experience includes leadership roles at both startups 
 
         <button
           onClick={handleGenerate}
-          disabled={!role.trim() || isGenerating}
+          disabled={!role.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating Bios...</span>
+              <span>Generating Bios with AI...</span>
             </>
           ) : (
             <>
@@ -144,6 +173,12 @@ ${experience || 'Previous experience includes leadership roles at both startups 
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">

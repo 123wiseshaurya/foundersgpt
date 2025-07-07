@@ -1,98 +1,59 @@
 import React, { useState } from 'react';
 import { TrendingUp, Sparkles, Search, Users, DollarSign, Shield } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const CompetitorAnalysis: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleAnalyze = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsAnalyzing(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    setResult({
-      competitors: [
-        {
-          name: "StartupLab",
-          url: "startuplab.com",
-          category: "Direct Competitor",
-          description: "AI-powered startup validation and planning platform",
-          strengths: ["Strong AI capabilities", "Large user base", "Comprehensive features"],
-          weaknesses: ["Expensive pricing", "Complex interface", "Limited customer support"],
-          pricing: "$99/month",
-          users: "50K+ users",
-          funding: "$10M Series A",
-          differentiators: ["More affordable", "Better UX", "Personalized approach"]
-        },
-        {
-          name: "IdeaValidator",
-          url: "ideavaliator.io",
-          category: "Indirect Competitor",
-          description: "Market research and validation tools for entrepreneurs",
-          strengths: ["Detailed market research", "Industry reports", "Expert network"],
-          weaknesses: ["Manual processes", "Slow turnaround", "Limited AI integration"],
-          pricing: "$49/month",
-          users: "15K+ users",
-          funding: "$2M Seed",
-          differentiators: ["Automated analysis", "Real-time insights", "All-in-one platform"]
-        },
-        {
-          name: "FounderTools",
-          url: "foundertools.com",
-          category: "Adjacent Competitor",
-          description: "Suite of tools for startup founders and entrepreneurs",
-          strengths: ["Wide range of tools", "Established brand", "Good integrations"],
-          weaknesses: ["Not AI-focused", "Fragmented experience", "Higher learning curve"],
-          pricing: "$79/month",
-          users: "25K+ users",
-          funding: "$5M Series A",
-          differentiators: ["AI-first approach", "Integrated experience", "Specialized focus"]
-        }
-      ],
-      marketAnalysis: {
-        marketSize: "$3.8B",
-        growthRate: "15.2% CAGR",
-        keyTrends: [
-          "Increasing adoption of AI in business planning",
-          "Growing number of first-time entrepreneurs",
-          "Shift towards remote entrepreneurship",
-          "Demand for automated validation tools"
-        ],
-        opportunities: [
-          "Underserved small business market",
-          "International expansion potential",
-          "Integration with funding platforms",
-          "Mobile-first approach"
-        ]
-      },
-      competitiveAdvantages: [
-        "Advanced AI algorithms for more accurate predictions",
-        "User-friendly interface designed for non-technical founders",
-        "Comprehensive end-to-end solution",
-        "Affordable pricing for early-stage entrepreneurs",
-        "Real-time collaboration features",
-        "Integrated funding and mentorship network"
-      ],
-      threats: [
-        "Well-funded competitors with large marketing budgets",
-        "Potential for big tech companies to enter the space",
-        "Economic downturn affecting startup funding",
-        "Regulatory changes in AI/data privacy"
-      ],
-      recommendations: [
-        "Focus on unique AI capabilities and user experience",
-        "Build strong partnerships with accelerators and incubators",
-        "Develop a content marketing strategy to establish thought leadership",
-        "Consider freemium model to attract early adopters",
-        "Invest in customer success and support"
-      ]
-    });
-    
-    setIsAnalyzing(false);
+    try {
+      const prompt = `Conduct a comprehensive competitive analysis for this startup: "${idea}"
+      
+      Analyze:
+      - Direct, indirect, and adjacent competitors
+      - Market size and growth trends
+      - Competitive advantages and differentiators
+      - Potential threats and opportunities
+      - Strategic recommendations
+      
+      Provide realistic competitor examples with pricing, user base estimates, and funding information.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.competitorAnalysis,
+        JSON_SCHEMAS.competitorAnalysis
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to analyze competitors. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -103,6 +64,10 @@ export const CompetitorAnalysis: React.FC = () => {
       default: return 'bg-purple-500/20 text-purple-300';
     }
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -131,13 +96,13 @@ export const CompetitorAnalysis: React.FC = () => {
 
         <button
           onClick={handleAnalyze}
-          disabled={!idea.trim() || isAnalyzing}
+          disabled={!idea.trim() || isAnalyzing || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isAnalyzing ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Analyzing Competitors...</span>
+              <span>Analyzing Competitors with AI...</span>
             </>
           ) : (
             <>
@@ -147,6 +112,12 @@ export const CompetitorAnalysis: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleAnalyze} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-8">

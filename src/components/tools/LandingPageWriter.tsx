@@ -1,99 +1,67 @@
 import React, { useState } from 'react';
 import { Globe, Sparkles, Eye, MousePointer } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const LandingPageWriter: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [tone, setTone] = useState('professional');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      headline: "Transform Your Startup Vision Into Reality",
-      subheadline: "The AI-powered platform that turns innovative ideas into strategic business assets, helping founders validate, develop, and scale their ventures with confidence.",
-      heroSection: {
-        headline: "Transform Your Startup Vision Into Reality",
-        subheadline: "Join thousands of founders who've successfully launched their startups using our AI-powered strategy tools and expert guidance.",
-        cta: "Start Your Journey Free"
-      },
-      features: [
-        {
-          title: "AI-Powered Validation",
-          description: "Get instant feedback on your startup idea with comprehensive market analysis and competitor insights.",
-          icon: "brain"
-        },
-        {
-          title: "Strategic Planning",
-          description: "Create detailed MVP roadmaps, business models, and go-to-market strategies tailored to your vision.",
-          icon: "target"
-        },
-        {
-          title: "Investor-Ready Materials",
-          description: "Generate professional pitch decks, one-pagers, and cold email templates that get results.",
-          icon: "presentation"
-        },
-        {
-          title: "Expert Community",
-          description: "Connect with mentors, advisors, and fellow founders to accelerate your startup journey.",
-          icon: "users"
-        }
-      ],
-      socialProof: {
-        testimonials: [
-          {
-            name: "Sarah Chen",
-            role: "Founder, TechFlow",
-            content: "This platform helped me validate my idea and create a winning pitch deck that secured $500K in seed funding.",
-            rating: 5
-          },
-          {
-            name: "Marcus Rodriguez",
-            role: "CEO, DataDrive",
-            content: "The MVP generator saved us months of planning time. We launched in 8 weeks instead of 6 months.",
-            rating: 5
-          }
-        ],
-        stats: [
-          { value: "2,500+", label: "Startups Launched" },
-          { value: "$50M+", label: "Funding Raised" },
-          { value: "85%", label: "Success Rate" }
-        ]
-      },
-      pricing: {
-        plans: [
-          {
-            name: "Starter",
-            price: "$29/month",
-            features: ["AI Idea Analysis", "MVP Planning", "Basic Templates", "Email Support"]
-          },
-          {
-            name: "Professional",
-            price: "$79/month",
-            features: ["Everything in Starter", "Investor Materials", "Advanced Analytics", "Priority Support", "1-on-1 Mentoring"]
-          },
-          {
-            name: "Enterprise",
-            price: "Custom",
-            features: ["Everything in Professional", "Custom Integrations", "Team Collaboration", "Dedicated Success Manager"]
-          }
-        ]
-      },
-      cta: {
-        headline: "Ready to Turn Your Idea Into a Successful Startup?",
-        subheadline: "Join thousands of founders who've already started their journey with us.",
-        button: "Get Started Free Today"
+    try {
+      const prompt = `Create compelling landing page copy for this startup: "${idea}"
+      
+      Tone: ${tone}
+      
+      Generate:
+      - Hero section with headline, subheadline, and CTA
+      - 4 key features with titles and descriptions
+      - Social proof including testimonials and stats
+      - Pricing section with 3 tiers
+      - Final CTA section
+      
+      Make it conversion-focused and persuasive.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.landingPageWriter,
+        JSON_SCHEMAS.landingPageContent
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
       }
-    });
-    
-    setIsGenerating(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate landing page copy. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -142,13 +110,13 @@ export const LandingPageWriter: React.FC = () => {
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating}
+          disabled={!idea.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating Copy...</span>
+              <span>Generating Copy with AI...</span>
             </>
           ) : (
             <>
@@ -158,6 +126,12 @@ export const LandingPageWriter: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-8">

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { FileText, Sparkles, Download } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const OnePager: React.FC = () => {
   const [idea, setIdea] = useState('');
@@ -7,54 +11,60 @@ export const OnePager: React.FC = () => {
   const [founderInfo, setFounderInfo] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    setResult({
-      companyName: companyName || 'FounderGPT',
-      tagline: 'AI-Powered Startup Strategy Assistant',
-      problem: 'Entrepreneurs struggle to validate ideas and create investor-ready materials, with 90% of startups failing due to lack of market validation.',
-      solution: 'FounderGPT provides AI-powered tools that help founders validate ideas, generate strategic documents, and create investor-ready materials in minutes.',
-      keyFeatures: [
-        'AI-powered idea validation and market analysis',
-        'Automated MVP planning and feature prioritization',
-        'Investor-ready pitch decks and one-pagers',
-        'Competitor analysis and market positioning'
-      ],
-      target: 'Early-stage entrepreneurs, startup accelerators, and business school students',
-      businessModel: 'SaaS subscription model with three tiers: Starter ($29/month), Professional ($79/month), and Enterprise (custom pricing)',
-      traction: [
-        '1,000+ beta users in first month',
-        '$15K MRR and growing 25% monthly',
-        'Partnerships with 3 major accelerators',
-        'Featured in TechCrunch and Product Hunt'
-      ],
-      team: founderInfo || 'Experienced team with successful exits and deep expertise in AI, product development, and entrepreneurship',
-      funding: {
-        seeking: '$1.5M Seed Round',
-        use: 'Product development (40%), Marketing (35%), Team expansion (25%)',
-        timeline: '18-month runway to Series A'
-      },
-      projections: {
-        year1: '$500K ARR',
-        year2: '$2.5M ARR',
-        year3: '$10M ARR'
-      },
-      contact: {
-        email: 'founder@foundergpt.com',
-        website: 'www.foundergpt.com',
-        phone: '+1 (555) 123-4567'
+    try {
+      const prompt = `Create a comprehensive one-page business summary for: "${idea}"
+      
+      Company name: ${companyName || 'Not specified'}
+      Founder info: ${founderInfo || 'Not specified'}
+      
+      Generate:
+      - Company name and tagline
+      - Problem and solution statements
+      - Key features and target market
+      - Business model and traction
+      - Team information and funding details
+      - Financial projections and contact info
+      
+      Make it investor-ready and professional.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.onePager,
+        JSON_SCHEMAS.onePager
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
       }
-    });
-    
-    setIsGenerating(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate one-pager. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -113,13 +123,13 @@ export const OnePager: React.FC = () => {
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating}
+          disabled={!idea.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating One-Pager...</span>
+              <span>Generating One-Pager with AI...</span>
             </>
           ) : (
             <>
@@ -129,6 +139,12 @@ export const OnePager: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">

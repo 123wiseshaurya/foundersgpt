@@ -1,175 +1,67 @@
 import React, { useState } from 'react';
 import { Presentation, Sparkles, ChevronRight } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const PitchDeckSlides: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [traction, setTraction] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    setResult({
-      slides: [
-        {
-          title: "Problem",
-          content: {
-            headline: "90% of startups fail due to lack of market validation",
-            bullets: [
-              "Entrepreneurs struggle to validate their ideas effectively",
-              "Current tools are expensive and complex for early-stage founders",
-              "Time-consuming manual research delays time-to-market"
-            ],
-            visualSuggestion: "Chart showing startup failure rates"
-          }
-        },
-        {
-          title: "Solution",
-          content: {
-            headline: "AI-powered startup validation in minutes, not months",
-            bullets: [
-              "Automated market research and competitor analysis",
-              "AI-generated strategic documents and business plans",
-              "One-click investor-ready materials"
-            ],
-            visualSuggestion: "Product demo screenshot or flow diagram"
-          }
-        },
-        {
-          title: "Market Opportunity",
-          content: {
-            headline: "$3.8B market growing at 15% annually",
-            bullets: [
-              "150M+ startups launched globally each year",
-              "Growing demand for AI-powered business tools",
-              "Underserved early-stage entrepreneur segment"
-            ],
-            visualSuggestion: "Market size chart with TAM/SAM/SOM"
-          }
-        },
-        {
-          title: "Product Demo",
-          content: {
-            headline: "See FounderGPT in action",
-            bullets: [
-              "Input: Startup idea description",
-              "Process: AI analysis and generation",
-              "Output: Complete strategic asset suite"
-            ],
-            visualSuggestion: "Live product demo or screenshots"
-          }
-        },
-        {
-          title: "Business Model",
-          content: {
-            headline: "SaaS with multiple revenue streams",
-            bullets: [
-              "Monthly subscriptions: $29-$79/month",
-              "Enterprise licensing: $500-$2,000/month",
-              "Premium services: $200/hour consulting"
-            ],
-            visualSuggestion: "Revenue model diagram"
-          }
-        },
-        {
-          title: "Traction",
-          content: {
-            headline: traction || "Strong early momentum",
-            bullets: traction ? [
-              traction,
-              "Growing user base and engagement",
-              "Positive customer feedback and testimonials"
-            ] : [
-              "1,000+ beta users in first month",
-              "85% user retention rate",
-              "Featured in top startup publications"
-            ],
-            visualSuggestion: "Growth charts and user testimonials"
-          }
-        },
-        {
-          title: "Competition",
-          content: {
-            headline: "Differentiated positioning in growing market",
-            bullets: [
-              "Direct competitors: Complex and expensive",
-              "Indirect competitors: Manual and slow",
-              "Our advantage: AI-first, affordable, comprehensive"
-            ],
-            visualSuggestion: "Competitive landscape matrix"
-          }
-        },
-        {
-          title: "Financial Projections",
-          content: {
-            headline: "Path to $10M ARR in 3 years",
-            bullets: [
-              "Year 1: $500K ARR with 1,000 customers",
-              "Year 2: $2.5M ARR with 5,000 customers",
-              "Year 3: $10M ARR with 15,000 customers"
-            ],
-            visualSuggestion: "Revenue projection chart"
-          }
-        },
-        {
-          title: "Team",
-          content: {
-            headline: "Experienced team with domain expertise",
-            bullets: [
-              "CEO: Former startup founder with successful exit",
-              "CTO: 10+ years building AI/ML products",
-              "Head of Product: Ex-Google PM with startup experience"
-            ],
-            visualSuggestion: "Team photos and key accomplishments"
-          }
-        },
-        {
-          title: "Funding Ask",
-          content: {
-            headline: "Raising $1.5M Seed Round",
-            bullets: [
-              "Product development: 40% ($600K)",
-              "Marketing & customer acquisition: 35% ($525K)",
-              "Team expansion: 25% ($375K)"
-            ],
-            visualSuggestion: "Funding breakdown pie chart"
-          }
-        },
-        {
-          title: "Use of Funds",
-          content: {
-            headline: "Accelerate growth and market expansion",
-            bullets: [
-              "Hire 3 additional engineers",
-              "Launch marketing campaigns",
-              "Expand AI capabilities and features"
-            ],
-            visualSuggestion: "Timeline showing milestones"
-          }
-        },
-        {
-          title: "Thank You",
-          content: {
-            headline: "Questions?",
-            bullets: [
-              "Contact: founder@foundergpt.com",
-              "Demo: foundergpt.com/demo",
-              "Deck: foundergpt.com/investors"
-            ],
-            visualSuggestion: "Contact information and QR code"
-          }
-        }
-      ]
-    });
-    
-    setIsGenerating(false);
+    try {
+      const prompt = `Create a comprehensive pitch deck for this startup: "${idea}"
+      
+      ${traction ? `Current traction: ${traction}` : 'Early stage startup'}
+      
+      Generate 12 slides with:
+      - Problem, Solution, Market Opportunity
+      - Product Demo, Business Model, Traction
+      - Competition, Financial Projections, Team
+      - Funding Ask, Use of Funds, Thank You
+      
+      Each slide should have a headline, 3-4 bullet points, and visual suggestions.
+      Make it investor-ready and compelling.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.pitchDeck,
+        JSON_SCHEMAS.pitchDeckSlides
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate pitch deck. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -214,13 +106,13 @@ export const PitchDeckSlides: React.FC = () => {
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating}
+          disabled={!idea.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating Pitch Deck...</span>
+              <span>Generating Pitch Deck with AI...</span>
             </>
           ) : (
             <>
@@ -230,6 +122,12 @@ export const PitchDeckSlides: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">

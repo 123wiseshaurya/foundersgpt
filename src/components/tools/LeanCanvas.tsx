@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { Grid3X3, Sparkles, Download, FileImage, FileText } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -8,92 +12,55 @@ export const LeanCanvas: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      problem: {
-        title: "Problem",
-        content: [
-          "Entrepreneurs struggle to validate their ideas effectively",
-          "90% of startups fail due to lack of market validation",
-          "Existing tools are complex and expensive for early-stage founders"
-        ]
-      },
-      solution: {
-        title: "Solution",
-        content: [
-          "AI-powered startup validation platform",
-          "Automated market research and analysis",
-          "Investor-ready document generation"
-        ]
-      },
-      keyMetrics: {
-        title: "Key Metrics",
-        content: [
-          "Monthly Active Users (MAU)",
-          "Customer Acquisition Cost (CAC)",
-          "Monthly Recurring Revenue (MRR)",
-          "User Retention Rate"
-        ]
-      },
-      uniqueValueProposition: {
-        title: "Unique Value Proposition",
-        content: "Turn your startup idea into strategic assets in minutes, not months - powered by AI"
-      },
-      unfairAdvantage: {
-        title: "Unfair Advantage",
-        content: [
-          "Proprietary AI algorithms trained on startup data",
-          "Experienced team with successful exits",
-          "First-mover advantage in AI-powered validation"
-        ]
-      },
-      channels: {
-        title: "Channels",
-        content: [
-          "Content marketing & SEO",
-          "Partnerships with accelerators",
-          "Social media & community building",
-          "Referral programs"
-        ]
-      },
-      customerSegments: {
-        title: "Customer Segments",
-        content: [
-          "First-time entrepreneurs",
-          "Serial entrepreneurs",
-          "Startup accelerators",
-          "Business students"
-        ]
-      },
-      costStructure: {
-        title: "Cost Structure",
-        content: [
-          "AI/ML infrastructure costs",
-          "Development team salaries",
-          "Marketing and customer acquisition",
-          "Legal and compliance"
-        ]
-      },
-      revenueStreams: {
-        title: "Revenue Streams",
-        content: [
-          "SaaS subscription fees",
-          "Premium features and add-ons",
-          "Enterprise licensing",
-          "Consulting and advisory services"
-        ]
+    try {
+      const prompt = `Create a comprehensive Lean Canvas for this startup: "${idea}"
+      
+      Generate all 9 sections:
+      - Problem (3-4 key problems)
+      - Solution (3-4 key solutions)
+      - Key Metrics (4-5 metrics to track)
+      - Unique Value Proposition (single clear statement)
+      - Unfair Advantage (3-4 advantages)
+      - Channels (3-4 distribution channels)
+      - Customer Segments (3-4 target segments)
+      - Cost Structure (3-4 main costs)
+      - Revenue Streams (3-4 revenue sources)
+      
+      Be specific and actionable for each section.`;
+
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.leanCanvas,
+        JSON_SCHEMAS.leanCanvas
+      );
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
       }
-    });
-    
-    setIsGenerating(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate lean canvas. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const exportCanvasAsPNG = async () => {
@@ -169,6 +136,10 @@ export const LeanCanvas: React.FC = () => {
     }
   };
 
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
+
   const canvasItems = [
     { key: 'problem', gridArea: 'problem', color: 'border-red-500/30 bg-red-500/10' },
     { key: 'solution', gridArea: 'solution', color: 'border-green-500/30 bg-green-500/10' },
@@ -208,13 +179,13 @@ export const LeanCanvas: React.FC = () => {
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating}
+          disabled={!idea.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating Canvas...</span>
+              <span>Generating Canvas with AI...</span>
             </>
           ) : (
             <>
@@ -224,6 +195,12 @@ export const LeanCanvas: React.FC = () => {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">
@@ -342,25 +319,6 @@ export const LeanCanvas: React.FC = () => {
                   </li>
                 </ul>
               </div>
-            </div>
-            
-            {/* Export Tips */}
-            <div className="mt-6 p-4 bg-purple-600/20 rounded-lg border border-purple-500/30">
-              <h4 className="font-medium text-purple-200 mb-2">Export Tips</h4>
-              <ul className="space-y-1 text-sm text-purple-100">
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-400 mt-1">💡</span>
-                  <span>PNG format is great for presentations and sharing online</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-400 mt-1">💡</span>
-                  <span>PDF format is perfect for printing and professional documents</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-400 mt-1">💡</span>
-                  <span>Both exports capture the canvas in high resolution</span>
-                </li>
-              </ul>
             </div>
           </div>
         </div>

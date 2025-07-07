@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, Sparkles, Copy, Check } from 'lucide-react';
+import { generateStructuredResponse } from '../../lib/openai';
+import { SYSTEM_PROMPTS, JSON_SCHEMAS } from '../../lib/prompts';
+import { ErrorMessage } from '../ui/ErrorMessage';
+import { ApiKeyPrompt } from '../ui/ApiKeyPrompt';
 
 export const EmailGenerator: React.FC = () => {
   const [idea, setIdea] = useState('');
@@ -8,83 +12,55 @@ export const EmailGenerator: React.FC = () => {
   const [tone, setTone] = useState('professional');
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(
+    localStorage.getItem('openai_api_key')
+  );
+
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openai_api_key', key);
+    (window as any).VITE_OPENAI_API_KEY = key;
+  };
 
   const handleGenerate = async () => {
-    if (!idea.trim()) return;
+    if (!idea.trim() || !apiKey) return;
     
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      subject: "Seeking Partnership: Revolutionary AI-Powered Startup Platform",
-      email: `Dear [Investor Name],
+    try {
+      const prompt = `Create compelling cold emails for investor outreach for this startup: "${idea}"
+      
+      Founder info: ${founderInfo || 'Not provided'}
+      Traction: ${traction || 'Early stage'}
+      Tone: ${tone}
+      
+      Generate:
+      - Subject line
+      - Main cold email (professional, concise, compelling)
+      - Follow-up email
+      - List of best practices and tips
+      
+      Make it personalized and results-oriented.`;
 
-I hope this email finds you well. My name is ${founderInfo || '[Your Name]'}, and I'm reaching out because of your impressive track record with early-stage technology companies.
+      const response = await generateStructuredResponse(
+        prompt,
+        SYSTEM_PROMPTS.emailGenerator,
+        JSON_SCHEMAS.emailTemplates
+      );
 
-I'm the founder of [Company Name], ${idea || 'an innovative platform that transforms how entrepreneurs validate and develop their startup ideas using AI-powered insights'}.
-
-THE OPPORTUNITY:
-Our platform addresses a critical gap in the startup ecosystem. Currently, 90% of startups fail due to lack of market validation and strategic planning. We're solving this by providing AI-powered tools that help founders:
-• Validate ideas with comprehensive market analysis
-• Generate MVP roadmaps and strategic documents
-• Create investor-ready materials
-• Connect with mentors and advisors
-
-${traction ? `TRACTION TO DATE:\n${traction}\n\n` : ''}MARKET OPPORTUNITY:
-The global startup ecosystem is worth over $3.8 trillion, with 150+ million startups launched annually. Our addressable market includes:
-• Early-stage entrepreneurs seeking validation
-• Accelerators and incubators
-• Business schools and entrepreneurship programs
-• Corporate innovation labs
-
-WHY NOW:
-With the recent advances in AI and the increasing democratization of entrepreneurship, we're perfectly positioned to capture this massive opportunity.
-
-WHAT WE'RE SEEKING:
-We're raising a $[Amount] seed round to accelerate product development and market expansion. Your expertise in [relevant sector] would be invaluable as we scale.
-
-I'd love to share more details about our vision and show you our platform in action. Would you be available for a brief call next week?
-
-Thank you for your time and consideration.
-
-Best regards,
-${founderInfo || '[Your Name]'}
-[Title]
-[Company Name]
-[Email]
-[Phone]
-
-P.S. I'd be happy to provide you with early access to our platform if you're interested in exploring it yourself.`,
-      followUp: `Subject: Following up on [Company Name] - Quick Question
-
-Hi [Investor Name],
-
-I wanted to follow up on my email from last week about [Company Name]. I know you receive numerous pitches, so I'll keep this brief.
-
-Since reaching out, we've had some exciting developments:
-• [Recent achievement or milestone]
-• [Another update or validation]
-
-I'd still love the opportunity to show you what we're building and get your thoughts. Even if you're not investing in this space right now, I'd greatly value your perspective.
-
-Would you have 15 minutes for a quick call this week?
-
-Best,
-${founderInfo || '[Your Name]'}`,
-      tips: [
-        "Research the investor's portfolio and mention specific companies they've invested in",
-        "Keep the initial email under 200 words",
-        "Include a clear ask and specific next steps",
-        "Personalize the opening and closing",
-        "Follow up within 5-7 business days if no response",
-        "Use a professional email signature with all contact info"
-      ]
-    });
-    
-    setIsGenerating(false);
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setResult(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate emails. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -92,6 +68,10 @@ ${founderInfo || '[Your Name]'}`,
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (!apiKey) {
+    return <ApiKeyPrompt onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -166,13 +146,13 @@ ${founderInfo || '[Your Name]'}`,
 
         <button
           onClick={handleGenerate}
-          disabled={!idea.trim() || isGenerating}
+          disabled={!idea.trim() || isGenerating || !apiKey}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-5 w-5 animate-spin" />
-              <span>Generating Email...</span>
+              <span>Generating Emails with AI...</span>
             </>
           ) : (
             <>
@@ -182,6 +162,12 @@ ${founderInfo || '[Your Name]'}`,
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorMessage message={error} onRetry={handleGenerate} />
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">
