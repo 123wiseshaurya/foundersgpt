@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Grid3X3, Sparkles, Download } from 'lucide-react';
+import { Grid3X3, Sparkles, Download, FileImage, FileText } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export const LeanCanvas: React.FC = () => {
   const [idea, setIdea] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [result, setResult] = useState<any>(null);
 
   const handleGenerate = async () => {
@@ -93,6 +96,79 @@ export const LeanCanvas: React.FC = () => {
     setIsGenerating(false);
   };
 
+  const exportCanvasAsPNG = async () => {
+    setIsExporting(true);
+    try {
+      const canvasElement = document.getElementById('lean-canvas-grid');
+      if (!canvasElement) {
+        alert('Canvas not found. Please generate a canvas first.');
+        return;
+      }
+
+      const canvas = await html2canvas(canvasElement, {
+        backgroundColor: '#1e1b4b',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const link = document.createElement('a');
+      link.download = 'lean-canvas.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    } catch (error) {
+      console.error('Error exporting canvas:', error);
+      alert('Error exporting canvas. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportCanvasAsPDF = async () => {
+    setIsExporting(true);
+    try {
+      const canvasElement = document.getElementById('lean-canvas-grid');
+      if (!canvasElement) {
+        alert('Canvas not found. Please generate a canvas first.');
+        return;
+      }
+
+      const canvas = await html2canvas(canvasElement, {
+        backgroundColor: '#1e1b4b',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      
+      const imgWidth = 297; // A4 landscape width in mm
+      const pageHeight = 210; // A4 landscape height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save('lean-canvas.pdf');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Error exporting PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const canvasItems = [
     { key: 'problem', gridArea: 'problem', color: 'border-red-500/30 bg-red-500/10' },
     { key: 'solution', gridArea: 'solution', color: 'border-green-500/30 bg-green-500/10' },
@@ -152,15 +228,35 @@ export const LeanCanvas: React.FC = () => {
       {result && (
         <div className="space-y-6">
           {/* Export Button */}
-          <div className="flex justify-end">
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-              <Download className="h-4 w-4" />
-              <span>Export Canvas</span>
+          <div className="flex justify-end space-x-3">
+            <button 
+              onClick={exportCanvasAsPNG}
+              disabled={isExporting}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              {isExporting ? (
+                <Sparkles className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileImage className="h-4 w-4" />
+              )}
+              <span>Export PNG</span>
+            </button>
+            <button 
+              onClick={exportCanvasAsPDF}
+              disabled={isExporting}
+              className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              {isExporting ? (
+                <Sparkles className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              <span>Export PDF</span>
             </button>
           </div>
 
           {/* Lean Canvas Grid */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+          <div id="lean-canvas-grid" className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
             <h3 className="text-xl font-semibold text-white mb-6 text-center">Lean Canvas</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4" style={{
@@ -246,6 +342,25 @@ export const LeanCanvas: React.FC = () => {
                   </li>
                 </ul>
               </div>
+            </div>
+            
+            {/* Export Tips */}
+            <div className="mt-6 p-4 bg-purple-600/20 rounded-lg border border-purple-500/30">
+              <h4 className="font-medium text-purple-200 mb-2">Export Tips</h4>
+              <ul className="space-y-1 text-sm text-purple-100">
+                <li className="flex items-start space-x-2">
+                  <span className="text-blue-400 mt-1">💡</span>
+                  <span>PNG format is great for presentations and sharing online</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-blue-400 mt-1">💡</span>
+                  <span>PDF format is perfect for printing and professional documents</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-blue-400 mt-1">💡</span>
+                  <span>Both exports capture the canvas in high resolution</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
